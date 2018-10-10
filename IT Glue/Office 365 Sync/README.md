@@ -141,7 +141,7 @@ $licenseTable = "{0}{1}{2}" -f $licenseTableTop, $licenseString, $licenseTableBo
 }
 $licensedUserTable = $null
 $licensedUsers = $null
-$licensedUsers = get-msoluser -TenantId $customer.TenantId -All | Where-Object {$_.islicensed} | Sort-Object UserPrincipalName
+$licensedUsers = get-msoluser -TenantId $customer.TenantId -All | Where-Object {$\_.islicensed} | Sort-Object UserPrincipalName
 if ($licensedUsers) {
 $licensedUsersTableTop = "
 Display Name Addresses Assigned Licenses
@@ -149,8 +149,8 @@ Display Name Addresses Assigned Licenses
 "
 $licensedUserColl = @()
 foreach ($user in $licensedUsers) {
-  
- $aliases = (($user.ProxyAddresses | Where-Object {$_ -cnotmatch "SMTP" -and $_ -notmatch ".onmicrosoft.com"}) -replace "SMTP:", " ") -join "
+
+$aliases = (($user.ProxyAddresses | Where-Object {$_ -cnotmatch "SMTP" -and $_ -notmatch ".onmicrosoft.com"}) -replace "SMTP:", " ") -join "
 "
 $licensedUserString = "$($user.DisplayName)$($user.UserPrincipalName)
 $aliases$(($user.Licenses.accountsku.skupartnumber) -join "
@@ -161,12 +161,10 @@ if ($licensedUserColl) {
 $licensedUserString = $licensedUserColl -join ""
 }
 $licensedUserTable = "{0}{1}{2}" -f $licensedUsersTableTop, $licensedUserString, $licensedUsersTableBottom
-  
-  
- }
-  
-  
- $hash = [ordered]@{
+
+}
+
+$hash = [ordered]@{
 TenantName = $companyInfo.displayname
 PartnerTenantName = $customer.name
 Domains = $customerDomains.name
@@ -177,16 +175,18 @@ LicensedUsers = $licensedUserTable
 }
 $object = New-Object psobject -Property $hash
 $365domains += $object
-  
- }
-  
- # Get all organisations
+
+}
+
+# Get all organisations
+
 #$orgs = GetAllITGItems -Resource organizations
-  
- # Get all Contacts
+
+# Get all Contacts
+
 $itgcontacts = GetAllITGItems -Resource contacts
-  
- $itgEmailRecords = @()
+
+$itgEmailRecords = @()
 foreach ($contact in $itgcontacts) {
 foreach ($email in $contact.attributes."contact-emails") {
 $hash = @{
@@ -197,11 +197,11 @@ $object = New-Object psobject -Property $hash
 $itgEmailRecords += $object
 }
 }
-  
- $allMatches = @()
+
+$allMatches = @()
 foreach ($365tenant in $365domains) {
 foreach ($domain in $365tenant.Domains) {
-$itgContactMatches = $itgEmailRecords | Where-Object {$_.domain -contains $domain}
+$itgContactMatches = $itgEmailRecords | Where-Object {$\_.domain -contains $domain}
 foreach ($match in $itgContactMatches) {
 $hash = [ordered]@{
 Key = "$($365tenant.TenantId)-$($match.OrganizationID)"
@@ -218,15 +218,15 @@ $allMatches += $object
 }
 }
 }
-  
- $uniqueMatches = $allMatches | Sort-Object key -Unique
-  
- foreach ($match in $uniqueMatches) {
+
+$uniqueMatches = $allMatches | Sort-Object key -Unique
+
+foreach ($match in $uniqueMatches) {
 $existingAssets = @()
 $existingAssets += GetAllITGItems -Resource "flexible*assets?filter[organization_id]=$($match.OrganizationID)&filter[flexible_asset_type_id]=$assetTypeID"
 $matchingAsset = $existingAssets | Where-Object {$*.attributes.traits.'tenant-id' -contains $match.TenantId}
-  
- if ($matchingAsset) {
+
+if ($matchingAsset) {
 Write-Host "Updating Office 365 tenant for $($match.tenantName)"
 $UpdatedBody = Build365TenantAsset -tenantInfo $match
 $updatedItem = UpdateITGItem -resource flexible_assets -existingItem $matchingAsset -newBody $UpdatedBody
@@ -359,10 +359,10 @@ $licenseString = $licensesColl -join ""
 }
 $licenseTable = "{0}{1}{2}" -f $licenseTableTop, $licenseString, $licenseTableBottom
 }
-  
- $licensedUsers = $null
+
+$licensedUsers = $null
 $licensedUserTable = $null
-$licensedUsers = get-msoluser -TenantId $customer.TenantId -All | Where-Object {$_.islicensed} | Sort-Object UserPrincipalName
+$licensedUsers = get-msoluser -TenantId $customer.TenantId -All | Where-Object {$\_.islicensed} | Sort-Object UserPrincipalName
 if ($licensedUsers) {
 $licensedUsersTableTop = "
 Display Name Addresses Assigned Licenses
@@ -370,8 +370,8 @@ Display Name Addresses Assigned Licenses
 "
 $licensedUserColl = @()
 foreach ($user in $licensedUsers) {
-  
- $aliases = (($user.ProxyAddresses | Where-Object {$_ -cnotmatch "SMTP" -and $_ -notmatch ".onmicrosoft.com"}) -replace "SMTP:", " ") -join "
+
+$aliases = (($user.ProxyAddresses | Where-Object {$_ -cnotmatch "SMTP" -and $_ -notmatch ".onmicrosoft.com"}) -replace "SMTP:", " ") -join "
 "
 $licensedUserString = "$($user.DisplayName)$($user.UserPrincipalName)
 $aliases$(($user.Licenses.accountsku.skupartnumber) -join "
@@ -382,12 +382,10 @@ if ($licensedUserColl) {
 $licensedUserString = $licensedUserColl -join ""
 }
 $licensedUserTable = "{0}{1}{2}" -f $licensedUsersTableTop, $licensedUserString, $licensedUsersTableBottom
-  
-  
- }
-  
-  
- $hash = [ordered]@{
+
+}
+
+$hash = [ordered]@{
 TenantName = $companyInfo.displayname
 PartnerTenantName = $customer.name
 Domains = $customerDomains.name
@@ -398,13 +396,14 @@ LicensedUsers = $licensedUserTable
 }
 $object = New-Object psobject -Property $hash
 $365domains += $object
-  
- }
-  
- # Get all Contacts
+
+}
+
+# Get all Contacts
+
 $itgcontacts = GetAllITGItems -Resource contacts
-  
- $itgEmailRecords = @()
+
+$itgEmailRecords = @()
 foreach ($contact in $itgcontacts) {
 foreach ($email in $contact.attributes."contact-emails") {
 $hash = @{
@@ -415,11 +414,11 @@ $object = New-Object psobject -Property $hash
 $itgEmailRecords += $object
 }
 }
-  
- $allMatches = @()
+
+$allMatches = @()
 foreach ($365tenant in $365domains) {
 foreach ($domain in $365tenant.Domains) {
-$itgContactMatches = $itgEmailRecords | Where-Object {$_.domain -contains $domain}
+$itgContactMatches = $itgEmailRecords | Where-Object {$\_.domain -contains $domain}
 foreach ($match in $itgContactMatches) {
 $hash = [ordered]@{
 Key = "$($365tenant.TenantId)-$($match.OrganizationID)"
@@ -436,15 +435,15 @@ $allMatches += $object
 }
 }
 }
-  
- $uniqueMatches = $allMatches | Sort-Object key -Unique
-  
- foreach ($match in $uniqueMatches) {
+
+$uniqueMatches = $allMatches | Sort-Object key -Unique
+
+foreach ($match in $uniqueMatches) {
 $existingAssets = @()
 $existingAssets += GetAllITGItems -Resource "flexible*assets?filter[organization_id]=$($match.OrganizationID)&filter[flexible_asset_type_id]=$assetTypeID"
 $matchingAsset = $existingAssets | Where-Object {$*.attributes.traits.'tenant-id' -contains $match.TenantId}
-  
- if ($matchingAsset) {
+
+if ($matchingAsset) {
 Write-Output "Updating Office 365 tenant for $($match.tenantName)"
 $UpdatedBody = Build365TenantAsset -tenantInfo $match
 $updatedItem = UpdateITGItem -resource flexible_assets -existingItem $matchingAsset -newBody $UpdatedBody
