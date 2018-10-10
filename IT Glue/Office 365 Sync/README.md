@@ -47,6 +47,7 @@ First we need to create a flexible asset type to hold the Office 365 tenant data
 
 ### PowerShell script to sync Office 365 tenant info with IT Glue
 
+```powershell
     $key = "ENTERITGLUEAPIKEYHERE"
     $assettypeID = 9999
     $baseURI = "https://api.itglue.com"
@@ -125,9 +126,11 @@ First we need to create a flexible asset type to hold the Office 365 tenant data
         $Licenses = Get-MsolAccountSku -TenantId $customer.TenantId
         if ($licenses) {
             $licenseTableTop = "
+```
 
 License Name Active Consumed Unused
-" $licenseTableBottom = "
+
+````powershell " $licenseTableBottom = "
 "
 $licensesColl = @()
 foreach ($license in $licenses) {
@@ -237,7 +240,7 @@ $newBody = Build365TenantAsset -tenantInfo $match
 $newItem = CreateITGItem -resource flexible_assets -body $newBody
 }
 }
-
+```
 ## How to sync Office 365 customer info and IT Glue using an Azure Function
 
 [Follow this guide][11] to create a Timer Triggered Azure Function that connects to Office 365.
@@ -246,10 +249,11 @@ $newItem = CreateITGItem -resource flexible_assets -body $newBody
 - Set it to run on a schedule, eg once a day at 9GMT time: **0 0 9 \* \* \***
 - Remember to upload the Office 365 Azure AD v1 **MSOnline** module via FTP, and encrypt your admin credentials.
 
-Here's the complete script to run this code as an Azure Function:
+Here is the complete script to run this code as an Azure Function:
 
 ### PowerShell script for Timer Triggered Azure Function to sync Office 365 tenants with IT Glue
 
+```powershell
     Write-Output "PowerShell Timer trigger function executed at:$(get-date)";
 
     $FunctionName = 'Sync365TenantsWithITGlue'
@@ -398,9 +402,10 @@ $object = New-Object psobject -Property $hash
 $365domains += $object
 
 }
-
+```
 # Get all Contacts
 
+```powershell
 $itgcontacts = GetAllITGItems -Resource contacts
 
 $itgEmailRecords = @()
@@ -454,7 +459,7 @@ $newBody = Build365TenantAsset -tenantInfo $match
 $newItem = CreateITGItem -resource flexible_assets -body $newBody
 }
 }
-
+```
 ### About The Author
 
 ![Elliot Munro][12]
@@ -477,3 +482,4 @@ Elliot Munro is an Office 365 MCSA from the Gold Coast, Australia supporting hun
 [12]: https://gcits.com/wp-content/uploads/AAEAAQAAAAAAAA2QAAAAJDNlN2NmM2Y4LTU5YWYtNGRiNC1hMmI2LTBhMzdhZDVmNWUzNA-80x80.jpg
 [13]: https://gcits.com/author/elliotmunro/
 [14]: mailto:elliot%40gcits.com
+````
