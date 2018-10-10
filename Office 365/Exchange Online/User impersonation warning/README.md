@@ -265,19 +265,3 @@ Remove-PSSession $s
 [12]: https://gcits.com/wp-content/uploads/UploadKeysAndMSOnlineModule.png
 [13]: https://gcits.com/wp-content/uploads/SetUpAnotherTimerTriggerInAzureFunctions.png
 [14]: https://gcits.com/wp-content/uploads/AzureFunctionRunningOnDelegatedCustomerTenants-1030x377.png
-
-```
-
-```
-
-```
-
-```
-
-```
-
-```
-
-```
-
-```
