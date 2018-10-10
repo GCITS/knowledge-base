@@ -130,7 +130,8 @@ First we need to create a flexible asset type to hold the Office 365 tenant data
 
 License Name Active Consumed Unused
 
-````powershell " $licenseTableBottom = "
+```powershell
+" $licenseTableBottom = "
 "
 $licensesColl = @()
 foreach ($license in $licenses) {
@@ -241,6 +242,7 @@ $newItem = CreateITGItem -resource flexible_assets -body $newBody
 }
 }
 ```
+
 ## How to sync Office 365 customer info and IT Glue using an Azure Function
 
 [Follow this guide][11] to create a Timer Triggered Azure Function that connects to Office 365.
@@ -349,8 +351,11 @@ Here is the complete script to run this code as an Azure Function:
         $Licenses = Get-MsolAccountSku -TenantId $customer.TenantId
         if ($Licenses) {
             $licenseTableTop = "
+```
 
 License Name Active Consumed Unused
+
+```powershell
 " $licenseTableBottom = "
 "
 $licensesColl = @()
@@ -403,6 +408,7 @@ $365domains += $object
 
 }
 ```
+
 # Get all Contacts
 
 ```powershell
@@ -460,6 +466,7 @@ $newItem = CreateITGItem -resource flexible_assets -body $newBody
 }
 }
 ```
+
 ### About The Author
 
 ![Elliot Munro][12]
@@ -482,4 +489,3 @@ Elliot Munro is an Office 365 MCSA from the Gold Coast, Australia supporting hun
 [12]: https://gcits.com/wp-content/uploads/AAEAAQAAAAAAAA2QAAAAJDNlN2NmM2Y4LTU5YWYtNGRiNC1hMmI2LTBhMzdhZDVmNWUzNA-80x80.jpg
 [13]: https://gcits.com/author/elliotmunro/
 [14]: mailto:elliot%40gcits.com
-````
