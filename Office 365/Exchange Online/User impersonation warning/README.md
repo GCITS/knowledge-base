@@ -43,29 +43,31 @@ If you'd just like to run this once for a single Office 365 organisation, you ca
 
 ### Script to create an Exchange Transport Rule for a single Office 365 tenant
 
+```powershell
     $ruleName = "External Senders with matching Display Names"
     $ruleHtml = "
+```
 
 This message was sent from outside the company by someone with a display name matching a user in your organisation. Please do not click links or open attachments unless you recognise the source of this email and know the content is safe.
 
-"
-  
- $credentials = Get-Credential
-  
- Write-Host "Getting the Exchange Online cmdlets" -ForegroundColor Yellow
+```powershell
+$credentials = Get-Credential
+
+Write-Host "Getting the Exchange Online cmdlets" -ForegroundColor Yellow
 $Session = New-PSSession -ConnectionUri https://outlook.office365.com/powershell-liveid/ `-ConfigurationName Microsoft.Exchange -Credential $credentials`
 -Authentication Basic -AllowRedirection
 Import-PSSession $Session -AllowClobber
-  
- $rule = Get-TransportRule | Where-Object {$\_.Identity -contains $ruleName}
+
+$rule = Get-TransportRule | Where-Object {$\_.Identity -contains $ruleName}
 $displayNames = (Get-Mailbox -ResultSize Unlimited).DisplayName
-  
- if (!$rule) {
+
+if (!$rule) {
 Write-Host "Rule not found, creating rule" -ForegroundColor Green
 New-TransportRule -Name $ruleName -Priority 0 -FromScope "NotInOrganization" -ApplyHtmlDisclaimerLocation "Prepend" `-HeaderMatchesMessageHeader From -HeaderMatchesPatterns $displayNames -ApplyHtmlDisclaimerText $ruleHtml } else { Write-Host "Rule found, updating rule" -ForegroundColor Green Set-TransportRule -Identity $ruleName -Priority 0 -FromScope "NotInOrganization" -ApplyHtmlDisclaimerLocation "Prepend"`
 -HeaderMatchesMessageHeader From -HeaderMatchesPatterns $displayNames -ApplyHtmlDisclaimerText $ruleHtml
 }
 Remove-PSSession $Session
+```
 
 ## Create a Transport Rule for all (or some) Office 365 customer tenants using Delegated Administration.
 
@@ -89,38 +91,41 @@ To run the script as it is, you can do the following:
 
 ### Script to create an Exchange Transport Rule for customers' Office 365 tenants using Delegated Administration
 
+```powershell
     $ruleName = "Warn on external senders with matching display names"
     $ruleHtml = "
+```
 
 This message was sent from outside the company by someone with a display name matching a user in your organisation. Please do not click links or open attachments unless you recognise the source of this email and know the content is safe.
 
-"
-  
- # Establish a PowerShell session with Office 365. You'll be prompted for your Delegated Admin credentials
+# Establish a PowerShell session with Office 365. You'll be prompted for your Delegated Admin credentials
+
+```powershell
 $Cred = Get-Credential
 Connect-MsolService -Credential $Cred
-$customers = Get-MsolPartnerContract | Where-Object {$_.name -match "Customer1" -or $_.name -match "Customer2" -or $_.name -match "Customer3"}
+$customers = Get-MsolPartnerContract | Where-Object {$_.name -match "Customer1" -or $_.name -match "Customer2" -or $\_.name -match "Customer3"}
 Write-Host "Found $($customers.Count) customers for $((Get-MsolCompanyInformation).displayname)."
-  
- foreach ($customer in $customers) {
-$InitialDomain = Get-MsolDomain -TenantId $customer.TenantId | Where-Object {$_.IsInitial -eq $true}
-  
- Write-Host "Checking transport rule for $($Customer.Name)" -ForegroundColor Green
+
+foreach ($customer in $customers) {
+$InitialDomain = Get-MsolDomain -TenantId $customer.TenantId | Where-Object {$\_.IsInitial -eq $true}
+
+Write-Host "Checking transport rule for $($Customer.Name)" -ForegroundColor Green
 $DelegatedOrgURL = "https://outlook.office365.com/powershell-liveid?DelegatedOrg=" + $InitialDomain.Name
 $s = New-PSSession -ConnectionUri $DelegatedOrgURL -Credential $Cred -Authentication Basic -ConfigurationName Microsoft.Exchange -AllowRedirection
 Import-PSSession $s -CommandName Get-Mailbox, Get-TransportRule, New-TransportRule, Set-TransportRule -AllowClobber
-  
- $rule = Get-TransportRule | Where-Object {$\_.Identity -contains $ruleName}
+
+$rule = Get-TransportRule | Where-Object {$\_.Identity -contains $ruleName}
 $displayNames = (Get-Mailbox -ResultSize Unlimited).DisplayName
-  
- if (!$rule) {
+
+if (!$rule) {
 Write-Host "Rule not found, creating Rule" -ForegroundColor Yellow
 New-TransportRule -Name $ruleName -Priority 0 -FromScope "NotInOrganization" -ApplyHtmlDisclaimerLocation "Prepend" `-HeaderMatchesMessageHeader From -HeaderMatchesPatterns $displayNames -ApplyHtmlDisclaimerText $ruleHtml } else { Write-Host "Rule found, updating Rule" -ForegroundColor Yellow Set-TransportRule -Identity $ruleName -Priority 0 -FromScope "NotInOrganization" -ApplyHtmlDisclaimerLocation "Prepend"`
 -HeaderMatchesMessageHeader From -HeaderMatchesPatterns $displayNames -ApplyHtmlDisclaimerText $ruleHtml
 }
-  
- Remove-PSSession $s
+
+Remove-PSSession $s
 }
+```
 
 ## Create an Azure function to automatically update this transport rule for your own Office 365 tenant
 
@@ -131,7 +136,7 @@ Ideally this script should be set up to run regularly so that the display names 
 - Call it something like **ExchangeTransportExtWarning** (If you're calling it something different, update the script below.)
 - Make sure you've created and uploaded your key as per the guide.![Upload Key To Azure Function][9]
 - Set it to run on a timer of your choosing. We're using the following cron trigger:
-        0 0 12 * * *
+  0 0 12 \* \* \*
 
 ![Set Up Timer Trigger In Azure Functions][10]
 
@@ -140,6 +145,7 @@ Ideally this script should be set up to run regularly so that the display names 
 
 ### Script for Azure Function to add or update the Exchange Transport Rule on your own tenant
 
+```powershell
     Write-Output "PowerShell Timer trigger function executed at:$(get-date)";
 
     $FunctionName = 'ExchangeTransportExtWarning'
@@ -153,28 +159,28 @@ Ideally this script should be set up to run regularly so that the display names 
 
     $ruleName = "External Senders with matching Display Names"
     $ruleHtml = "
+```
 
 This message was sent from outside the company by someone with a display name matching a user in your organisation. Please do not click links or open attachments unless you recognise the source of this email and know the content is safe.
 
-"
-  
- Write-Output "Getting the Exchange Online cmdlets"
-  
- $Session = New-PSSession -ConnectionUri https://outlook.office365.com/powershell-liveid/ `-ConfigurationName Microsoft.Exchange -Credential $credential`
+```powershell
+Write-Output "Getting the Exchange Online cmdlets"
+
+$Session = New-PSSession -ConnectionUri https://outlook.office365.com/powershell-liveid/ `-ConfigurationName Microsoft.Exchange -Credential $credential`
 -Authentication Basic -AllowRedirection
 Import-PSSession $Session -AllowClobber
-  
-  
- $rule = Get-TransportRule | Where-Object {$\_.Identity -contains $ruleName}
+
+$rule = Get-TransportRule | Where-Object {$\_.Identity -contains $ruleName}
 $displayNames = (Get-Mailbox -ResultSize Unlimited).DisplayName
-  
- if (!$rule) {
+
+if (!$rule) {
 Write-Output "Rule not found, creating rule"
 New-TransportRule -Name $ruleName -Priority 0 -FromScope "NotInOrganization" -ApplyHtmlDisclaimerLocation "Prepend" `-HeaderMatchesMessageHeader From -HeaderMatchesPatterns $displayNames -ApplyHtmlDisclaimerText $ruleHtml } else { Write-Output "Rule found, updating rule" Set-TransportRule -Identity $ruleName -Priority 0 -FromScope "NotInOrganization" -ApplyHtmlDisclaimerLocation "Prepend"`
 -HeaderMatchesMessageHeader From -HeaderMatchesPatterns $displayNames -ApplyHtmlDisclaimerText $ruleHtml
 }
-  
- Remove-PSSession $Session
+
+Remove-PSSession $Session
+```
 
 ## Create an Azure function to automatically update this transport rule for customer Office 365 tenants using delegated administration
 
@@ -183,7 +189,7 @@ New-TransportRule -Name $ruleName -Priority 0 -FromScope "NotInOrganization" -Ap
 - Call it something like **ExchangeTransportExtWarningDelegated** (If you're calling it something different, update the script below.)
 - Make sure you've saved and uploaded the MSOnline PowerShell module and keys as per the guide.![Upload Keys And MSOnline Module][12]
 - Set it to run on a timer of your choosing. We're using the following cron trigger:
-        0 0 10 * * *
+  0 0 10 \* \* \*
 
 ![Set Up Another Timer Trigger In Azure Functions][13]
 
@@ -192,6 +198,7 @@ New-TransportRule -Name $ruleName -Priority 0 -FromScope "NotInOrganization" -Ap
 
 ### Script for Azure Function to add or update the Exchange Transport Rule to customers' Office 365 Tenants using delegated administration
 
+```powershell
     Write-Output "PowerShell Timer trigger function executed at:$(get-date)";
 
     $FunctionName = 'ExchangeTransportExtWarningDelegated'
@@ -218,30 +225,31 @@ New-TransportRule -Name $ruleName -Priority 0 -FromScope "NotInOrganization" -Ap
 
     $ruleName = "Warn on external senders with matching display names"
     $ruleHtml = "
+```
 
 This message was sent from outside the company by someone with a display name matching a user in your organisation. Please do not click links or open attachments unless you recognise the source of this email and know the content is safe.
 
-"
-  
- foreach ($customer in $customers) {
-$InitialDomain = Get-MsolDomain -TenantId $customer.TenantId | Where-Object {$_.IsInitial -eq $true}
-  
- Write-Output "Checking transport rule for $($Customer.Name)"
+```powershell
+foreach ($customer in $customers) {
+$InitialDomain = Get-MsolDomain -TenantId $customer.TenantId | Where-Object {$\_.IsInitial -eq $true}
+
+Write-Output "Checking transport rule for $($Customer.Name)"
 $DelegatedOrgURL = "https://outlook.office365.com/powershell-liveid?DelegatedOrg=" + $InitialDomain.Name
 $s = New-PSSession -ConnectionUri $DelegatedOrgURL -Credential $credential -Authentication Basic -ConfigurationName Microsoft.Exchange -AllowRedirection
 Import-PSSession $s -CommandName Get-Mailbox, Get-TransportRule, New-TransportRule, Set-TransportRule -AllowClobber
-  
- $rule = Get-TransportRule | Where-Object {$_.Identity -contains $ruleName}
+
+$rule = Get-TransportRule | Where-Object {$\_.Identity -contains $ruleName}
 $displayNames = (Get-Mailbox -ResultSize Unlimited).DisplayName
-  
- if (!$rule) {
+
+if (!$rule) {
 Write-Output "Rule not found, creating Rule"
 New-TransportRule -Name $ruleName -Priority 0 -FromScope "NotInOrganization" -ApplyHtmlDisclaimerLocation "Prepend" `-HeaderMatchesMessageHeader From -HeaderMatchesPatterns $displayNames -ApplyHtmlDisclaimerText $ruleHtml } else { Write-Output "Rule found, updating Rule" Set-TransportRule -Identity $ruleName -Priority 0 -FromScope "NotInOrganization" -ApplyHtmlDisclaimerLocation "Prepend"`
 -HeaderMatchesMessageHeader From -HeaderMatchesPatterns $displayNames -ApplyHtmlDisclaimerText $ruleHtml
 }
-  
- Remove-PSSession $s
+
+Remove-PSSession $s
 }
+```
 
 [1]: https://gcits.com/wp-content/uploads/PhishingEmailWithWarning.png
 [2]: https://gcits.com/wp-content/uploads/WarningOnAllExternalEmail-1030x266.png
@@ -257,3 +265,19 @@ New-TransportRule -Name $ruleName -Priority 0 -FromScope "NotInOrganization" -Ap
 [12]: https://gcits.com/wp-content/uploads/UploadKeysAndMSOnlineModule.png
 [13]: https://gcits.com/wp-content/uploads/SetUpAnotherTimerTriggerInAzureFunctions.png
 [14]: https://gcits.com/wp-content/uploads/AzureFunctionRunningOnDelegatedCustomerTenants-1030x377.png
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```

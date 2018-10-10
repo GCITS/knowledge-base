@@ -128,7 +128,7 @@ First we need to create a flexible asset type to hold the Office 365 tenant data
             $licenseTableTop = "
 ```
 
-License Name Active Consumed Unused
+# License Name Active Consumed Unused
 
 ```powershell
 " $licenseTableBottom = "
@@ -148,7 +148,11 @@ $licensedUsers = $null
 $licensedUsers = get-msoluser -TenantId $customer.TenantId -All | Where-Object {$\_.islicensed} | Sort-Object UserPrincipalName
 if ($licensedUsers) {
 $licensedUsersTableTop = "
-Display Name Addresses Assigned Licenses
+```
+
+# Display Name Addresses Assigned Licenses
+
+```powershell
 " $licensedUsersTableBottom = "
 "
 $licensedUserColl = @()
@@ -356,8 +360,8 @@ Here is the complete script to run this code as an Azure Function:
 License Name Active Consumed Unused
 
 ```powershell
-" $licenseTableBottom = "
-"
+$licenseTableBottom = ""
+
 $licensesColl = @()
 foreach ($license in $licenses) {
 $licenseString = "$($license.SkuPartNumber)$($license.ActiveUnits) active$($license.ConsumedUnits) consumed$($license.ActiveUnits - $license.ConsumedUnits) unused"
