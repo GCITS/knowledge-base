@@ -93,6 +93,7 @@ foreach ($customer in $customers) {
     $companyInfo = Get-MsolCompanyInformation -TenantId $customer.TenantId
     
     #Get Admins
+    $RoleName = "Company Administrator"
     $CompanyAdminRole = Get-MsolRole | Where-Object{$_.Name -match $RoleName}
     $RoleID = $CompanyAdminRole.ObjectID
     $Admins = Get-MsolRoleMember -TenantId $Customer.TenantId -RoleObjectId $RoleID
