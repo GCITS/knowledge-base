@@ -338,7 +338,7 @@ foreach ($customerTenant in $customers) {
         $itgContactMatches = $itgEmailRecords | Where-Object { $_.domain -contains $domain }
         foreach ($match in $itgContactMatches) {
             $allMatches += [pscustomobject]@{
-                ITGlueOrgId   = $match.OrganizationID
+                ITGlueOrgId   = $match.OrganizationID.toString()
                 ITGlueOrg     = ($itgOrgs | Where-Object { $_.id -eq $match.OrganizationID }).attributes.name
                 TenantId      = $tenant_id
                 DefaultDomain = ($domains | Where-Object { $_.isDefault }).id
@@ -368,7 +368,7 @@ if (!$list) {
     $columnCollection += New-GCITSSharePointColumn -Name DisableSync -Type boolean -Indexed $true
     $columnCollection += New-GCITSSharePointColumn -Name DefaultDomain -Type text -Indexed $true
     $columnCollection += New-GCITSSharePointColumn -Name TenantId -Type text -Indexed $true
-    $columnCollection += New-GCITSSharePointColumn -Name ITGlueOrgId -Type number -Indexed $true
+    $columnCollection += New-GCITSSharePointColumn -Name ITGlueOrgId -Type text -Indexed $true
     $columnCollection += New-GCITSSharePointColumn -Name Key -Type text -Indexed $true
     $List = New-GCITSSharePointList -Name $ListName -ColumnCollection $columnCollection
     $firstRun = $true
