@@ -48,8 +48,11 @@ function Build365TenantAsset ($tenantInfo) {
                     "tenant-id"        = $tenantInfo.TenantID
                     "initial-domain"   = $tenantInfo.InitialDomain
                     "verified-domains" = $tenantInfo.Domains
+                    "admins"           = $tenantInfo.Admins
+<# Removed due to ITGlue Native Office 365 Integration                    
                     "licenses"         = $tenantInfo.Licenses
                     "licensed-users"   = $tenantInfo.LicensedUsers
+#>
                 }
             }
         }
@@ -66,61 +69,78 @@ $customers = Get-MsolPartnerContract -All
 $365domains = @()
     
 foreach ($customer in $customers) {
+    # Null the variables for each customer
+    $companyInfo = $null
+    $CompanyAdminRole = $null
+    $RoleID = $null
+    $customerDomains = $null
+    $initialDomain = $null
+
+    $domainTableTop = $null
+    $domainTableBottom = $null
+    $domainCol1 = $null
+    $domainString = $null
+    $domaintable = $null
+
+    $admins = $null
+    $adminsTableTop = $null
+    $adminsTableBottom = $null
+    $adminsCol1 = $null
+    $adminString = $null
+    $admintable = $null
+
     Write-Host "Getting domains for $($customer.name)" -ForegroundColor Green
     $companyInfo = Get-MsolCompanyInformation -TenantId $customer.TenantId
     
+    #Get Admins
+    $RoleName = "Company Administrator"
+    $CompanyAdminRole = Get-MsolRole | Where-Object{$_.Name -match $RoleName}
+    $RoleID = $CompanyAdminRole.ObjectID
+    $Admins = Get-MsolRoleMember -TenantId $Customer.TenantId -RoleObjectId $RoleID
+    
     $customerDomains = Get-MsolDomain -TenantId $customer.TenantId | Where-Object {$_.status -contains "Verified"}
     $initialDomain = $customerDomains | Where-Object {$_.isInitial}
-    $Licenses = $null
-    $licenseTable = $null
-    $Licenses = Get-MsolAccountSku -TenantId $customer.TenantId
-    if ($licenses) {
-        $licenseTableTop = "<br/><table class=`"table table-bordered table-hover`" style=`"width:600px`"><thead><tr><th>License Name</th><th>Active</th><th>Consumed</th><th>Unused</th></tr></thead><tbody><tr><td>"
-        $licenseTableBottom = "</td></tr></tbody></table>"
-        $licensesColl = @()
-        foreach ($license in $licenses) {
-            $licenseString = "$($license.SkuPartNumber)</td><td>$($license.ActiveUnits) active</td><td>$($license.ConsumedUnits) consumed</td><td>$($license.ActiveUnits - $license.ConsumedUnits) unused"
-            $licensesColl += $licenseString
-        }
-        if ($licensesColl) {
-            $licenseString = $licensesColl -join "</td></tr><tr><td>"
-        }
-        $licenseTable = "{0}{1}{2}" -f $licenseTableTop, $licenseString, $licenseTableBottom
-    }
-    $licensedUserTable = $null
-    $licensedUsers = $null
-    $licensedUsers = get-msoluser -TenantId $customer.TenantId -All | Where-Object {$_.islicensed} | Sort-Object UserPrincipalName
-    if ($licensedUsers) {
-        $licensedUsersTableTop = "<br/><table class=`"table table-bordered table-hover`" style=`"width:80%`"><thead><tr><th>Display Name</th><th>Addresses</th><th>Assigned Licenses</th></tr></thead><tbody><tr><td>"
-        $licensedUsersTableBottom = "</td></tr></tbody></table>"
-        $licensedUserColl = @()
-        foreach ($user in $licensedUsers) {
-           
-            $aliases = (($user.ProxyAddresses | Where-Object {$_ -cnotmatch "SMTP" -and $_ -notmatch ".onmicrosoft.com"}) -replace "SMTP:", " ") -join "<br/>"
-            $licensedUserString = "$($user.DisplayName)</td><td><strong>$($user.UserPrincipalName)</strong><br/>$aliases</td><td>$(($user.Licenses.accountsku.skupartnumber) -join "<br/>")"
-            $licensedUserColl += $licensedUserString
-        }
-        if ($licensedUserColl) {
-            $licensedUserString = $licensedUserColl -join "</td></tr><tr><td>"
-        }
-        $licensedUserTable = "{0}{1}{2}" -f $licensedUsersTableTop, $licensedUserString, $licensedUsersTableBottom
     
-    
+    if ($customerDomains) {
+        $customerDomains = $customerDomains | Sort-Object -Property @{Expression = {$_.IsDefault}; Ascending = $false}, Name
+        $domainTableTop = "<br/><table class=`"table table-bordered table-hover`" style=`"width:600px`"><thead><tr><th>Domain Name</th><th>IsDefault</th><th>Status</th><th>Authentication</th></tr></thead><tbody><tr><td>"
+        $domainTableBottom = "</td></tr></tbody></table>"
+        $domainCol1 = @()
+        foreach ($custdomain in $customerDomains) {
+            $domainString = "$($custdomain.Name)</td><td>$($custdomain.IsDefault)</td><td>$($custdomain.Status)</td><td>$($custdomain.Authentication)"
+            $domainCol1 += $domainString
+        }
+        if ($domainCol1) {
+            $domainString = $domainCol1 -join "</td></tr><tr><td>"
+        }
+        $domaintable = "{0}{1}{2}" -f $domainTableTop, $domainString, $domainTableBottom
     }
-        
-        
+
+    if ($Admins) {
+        $adminsTableTop = "<br/><table class=`"table table-bordered table-hover`" style=`"width:600px`"><thead><tr><th>Display Name</th><th>EmailAddeess</th><th>isLicensed</th></tr></thead><tbody><tr><td>"
+        $adminsTableBottom = "</td></tr></tbody></table>"
+        $adminsCol1 = @()
+        foreach ($admin in $admins) {
+            $adminString = "$($admin.DisplayName)</td><td>$($admin.EmailAddress)</td><td>$($admin.IsLicensed)"
+            $adminsCol1 += $adminString
+        }
+        if ($adminsCol1) {
+            $adminString = $adminsCol1 -join "</td></tr><tr><td>"
+        }
+        $admintable = "{0}{1}{2}" -f $adminsTableTop, $adminString, $adminsTableBottom
+    }
+
     $hash = [ordered]@{
         TenantName        = $companyInfo.displayname
         PartnerTenantName = $customer.name
         Domains           = $customerDomains.name
+        DomainTable       = $domaintable
         TenantId          = $customer.TenantId
         InitialDomain     = $initialDomain.name
-        Licenses          = $licenseTable
-        LicensedUsers     = $licensedUserTable
+        Admins            = $admintable
     }
     $object = New-Object psobject -Property $hash
     $365domains += $object
-        
 }
     
 # Get all organisations
@@ -149,12 +169,11 @@ foreach ($365tenant in $365domains) {
             $hash = [ordered]@{
                 Key            = "$($365tenant.TenantId)-$($match.OrganizationID)"
                 TenantName     = $365tenant.TenantName
-                Domains        = ($365tenant.domains -join ", ")
+                Domains        = $365tenant.DomainTable
                 TenantId       = $365tenant.TenantId
                 InitialDomain  = $365tenant.InitialDomain
+                Admins         = $365tenant.Admins
                 OrganizationID = $match.OrganizationID
-                Licenses       = $365tenant.Licenses
-                LicensedUsers  = $365tenant.LicensedUsers
             }
             $object = New-Object psobject -Property $hash
             $allMatches += $object
